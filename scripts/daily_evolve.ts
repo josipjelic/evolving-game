@@ -8,33 +8,47 @@ const DRY_RUN = process.argv.includes("--dry-run");
 
 const EVOLUTION_PROMPT = `You are the daily evolution agent for Crystal Cavern, a browser survival game.
 
-Read these files first:
-- EVOLUTION.md (current goals, constraints, history)
-- telemetry/latest.json (player metrics)
-- telemetry/playtest.json (bot playtest results)
-- rules/balance.json
-- content/levels/level_1.json
-- content/dialog.json
+## Priority (in order)
+1. **New features** from content/features.json backlog (pick highest priority not yet shipped)
+2. **New assets** — SVG sprites in public/assets/sprites/, wire up in content/assets.json + src/
+3. **New content** — levels, enemies, dialog, mechanics driven by data in content/
+4. **Balance tweaks** — ONLY if human telemetry shows clear pain (see telemetry/latest.json → human)
 
-Allowed edits ONLY:
-- content/** (levels, dialog, enemies)
-- rules/balance.json
-- tests/** (add/update tests for your change)
-- CHANGELOG.game.md (append today's entry)
-- EVOLUTION.md (update hypotheses and yesterday's outcome)
+Balance-only days are discouraged unless human win rate is <25% or >75%.
 
-FORBIDDEN:
-- src/** (game engine — do not touch)
-- scripts/**, .github/**, package.json, vite.config.ts
+## Read first
+- EVOLUTION.md
+- content/features.json (backlog + shipped)
+- content/assets.json
+- telemetry/latest.json (human runs — PRIMARY signal)
+- telemetry/playtest.json (bot — secondary sanity check)
+- rules/balance.json, content/**
 
-Task — pick ONE hypothesis and make ONE smallest change:
-1. Infer the biggest pain from metrics/playtest (e.g. win rate too low, deaths too early)
-2. Change one knob: enemy HP, spawn rate, coin count, heal cost, tutorial dialog, etc.
-3. Add or update one test in tests/ that would fail if the change regressed badly
-4. Append a 3-line entry to CHANGELOG.game.md
-5. Update EVOLUTION.md: mark hypothesis tested, note expected metric impact
+## Allowed edits
+- content/** (levels, enemies, dialog, features.json, assets.json)
+- public/assets/** (SVG sprites, sfx as small files)
+- src/** (wire new features — keep changes minimal)
+- rules/balance.json (only when human telemetry justifies it)
+- tests/** (guard new features)
+- CHANGELOG.game.md, EVOLUTION.md
 
-Keep the diff under 80 lines. Do not refactor. Do not add dependencies.`;
+## Forbidden
+- scripts/**, .github/**, package.json (no new dependencies without explicit need)
+- Large refactors or rewrites
+
+## Task — ONE feature or asset per day
+1. Pick the top backlog item from content/features.json (or infer from human session patterns)
+2. Implement it end-to-end: data + assets + minimal src wiring + test
+3. Move the item from backlog → shipped in content/features.json
+4. Append CHANGELOG.game.md (what shipped, why, what to playtest)
+5. Update EVOLUTION.md outcomes log
+
+Human telemetry patterns to watch:
+- deaths before collecting crystals → easier early game OR new defensive feature
+- healsUsed always 0 → healing not discoverable OR new UI cue
+- timeouts → level pacing feature, not just number tweaks
+
+Keep diff under 200 lines. Ship playable increments.`;
 
 function readAgentId(): string | null {
   if (!existsSync(AGENT_ID_FILE)) return null;

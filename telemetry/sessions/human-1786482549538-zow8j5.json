@@ -1,0 +1,88 @@
+{
+  "sessionId": "human-1786482549538-zow8j5",
+  "player": "human",
+  "levelId": "level_1",
+  "startedAt": "2026-08-11T21:09:09.538Z",
+  "endedAt": "2026-08-11T21:09:47.556Z",
+  "outcome": "win",
+  "durationSeconds": 38,
+  "wave": 2,
+  "coinsCollected": 5,
+  "coinsRequired": 5,
+  "healsUsed": 0,
+  "gold": 25,
+  "finalHp": 98,
+  "events": [
+    {
+      "type": "coin_collect",
+      "at": "2026-08-11T21:09:12.209Z",
+      "elapsed": 2.6704000000001864,
+      "wave": 1,
+      "hp": 100,
+      "gold": 5,
+      "coins": 1,
+      "playerX": 209,
+      "playerY": 337,
+      "total": 1
+    },
+    {
+      "type": "coin_collect",
+      "at": "2026-08-11T21:09:13.277Z",
+      "elapsed": 3.737900000000187,
+      "wave": 1,
+      "hp": 100,
+      "gold": 10,
+      "coins": 2,
+      "playerX": 122,
+      "playerY": 222,
+      "total": 2
+    },
+    {
+      "type": "coin_collect",
+      "at": "2026-08-11T21:09:15.829Z",
+      "elapsed": 6.290000000000197,
+      "wave": 1,
+      "hp": 100,
+      "gold": 15,
+      "coins": 3,
+      "playerX": 513,
+      "playerY": 183,
+      "total": 3
+    },
+    {
+      "type": "coin_collect",
+      "at": "2026-08-11T21:09:16.663Z",
+      "elapsed": 7.123800000000201,
+      "wave": 1,
+      "hp": 100,
+      "gold": 20,
+      "coins": 4,
+      "playerX": 451,
+      "playerY": 302,
+      "total": 4
+    },
+    {
+      "type": "coin_collect",
+      "at": "2026-08-11T21:09:18.781Z",
+      "elapsed": 9.242500000000197,
+      "wave": 1,
+      "hp": 100,
+      "gold": 25,
+      "coins": 5,
+      "playerX": 312,
+      "playerY": 167,
+      "total": 5
+    },
+    {
+      "type": "win",
+      "at": "2026-08-11T21:09:47.555Z",
+      "elapsed": 38.01580000000021,
+      "wave": 2,
+      "hp": 97.9195,
+      "gold": 25,
+      "coins": 5,
+      "playerX": 222,
+      "playerY": 388
+    }
+  ]
+}

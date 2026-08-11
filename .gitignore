@@ -6,5 +6,4 @@ dist/
 !.env.example
 telemetry/latest.json
 telemetry/playtest.json
-telemetry/sessions/
 .agent-id

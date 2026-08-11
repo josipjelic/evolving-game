@@ -1,0 +1,34 @@
+{
+  "sessionId": "human-1786482628988-cftnu6",
+  "player": "human",
+  "levelId": "level_1",
+  "startedAt": "2026-08-11T21:10:28.988Z",
+  "endedAt": "2026-08-11T21:10:47.774Z",
+  "outcome": "lose",
+  "durationSeconds": 19,
+  "wave": 1,
+  "coinsCollected": 0,
+  "coinsRequired": 5,
+  "healsUsed": 0,
+  "gold": 0,
+  "finalHp": 0,
+  "events": [
+    {
+      "type": "lose",
+      "at": "2026-08-11T21:10:47.773Z",
+      "elapsed": 18.78419999999983,
+      "wave": 1,
+      "hp": -0.08349999999959477,
+      "gold": 0,
+      "coins": 0,
+      "playerX": 320,
+      "playerY": 400,
+      "reason": "death",
+      "deathX": 320,
+      "deathY": 400
+    }
+  ],
+  "reason": "death",
+  "deathX": 320,
+  "deathY": 400
+}

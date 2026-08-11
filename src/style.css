@@ -71,3 +71,16 @@ canvas {
 #heal-btn:hover {
   background: #334155;
 }
+
+#telemetry-status {
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+#telemetry-status.saved {
+  color: #4ade80;
+}
+
+#telemetry-status.error {
+  color: #f87171;
+}

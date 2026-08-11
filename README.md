@@ -1,52 +1,60 @@
 # Evolving Game
 
-A browser survival game that **improves itself daily** via a Cursor AI agent. The agent reads telemetry and playtest results, makes one small balance/content change, runs tests, and commits.
+A browser survival game that **grows daily** via a Cursor AI agent — new features, assets, and content first; balance driven by **your play sessions**.
 
 ## Quick start
 
 ```bash
 npm install
 npm run dev          # play at http://localhost:5173
-npm test             # balance + level integrity tests
-npm run playtest     # headless bot, writes telemetry/playtest.json
-npm run telemetry    # aggregate metrics → telemetry/latest.json
-npm run evolve:dry   # print evolution prompt (no API call)
+npm test
+npm run telemetry    # aggregate your runs → telemetry/latest.json
+npm run playtest     # bot sanity check (secondary)
 npm run evolve       # daily agent (needs CURSOR_API_KEY)
 ```
 
-Copy `.env.example` → `.env` and set `CURSOR_API_KEY` for evolution runs.
+## Your runs = primary signal
 
-## How it works
+While `npm run dev` is running, every finished run (win or lose) auto-saves to `telemetry/sessions/`. You'll see **Telemetry: saved …** in the UI.
 
-```
-Players / bot playtest → telemetry → daily agent → content/balance change → tests → commit
-```
-
-| Path | Purpose | Agent can edit? |
-|------|---------|-----------------|
-| `src/` | Game engine (canvas, input) | No |
-| `content/` | Levels, dialog, enemies | Yes |
-| `rules/balance.json` | Numbers (HP, damage, economy) | Yes |
-| `tests/` | Guardrails | Yes |
-| `EVOLUTION.md` | Agent memory + hypotheses | Yes |
-| `scripts/` | Telemetry, playtest, evolve runner | No |
-
-## Daily evolution (local)
+Then aggregate for the agent:
 
 ```bash
-npm run telemetry && npm run playtest && npm run evolve && npm test
+npm run telemetry
 ```
 
-## Daily evolution (GitHub Actions)
+Commit sessions if you want them in the repo for CI evolution:
 
-Workflow `.github/workflows/daily-evolve.yml` runs at 03:00 UTC when `CURSOR_API_KEY` is set as a repo secret.
+```bash
+git add telemetry/sessions/*.json && git commit -m "telemetry: my play sessions"
+```
 
-## Export player telemetry
+## Evolution priority
 
-The game stores events in `localStorage` under `evolving-game-telemetry`. Export and save as `telemetry/sessions/<date>.json`:
+```
+1. Features (content/features.json backlog)
+2. Assets (public/assets/sprites/*.svg)
+3. New content (levels, enemies, dialog)
+4. Balance — only when YOUR runs show pain (<25% or >75% win rate)
+```
 
-```json
-{ "events": [ { "type": "win", "wave": 2 } ] }
+## Project layout
+
+| Path | Purpose |
+|------|---------|
+| `content/features.json` | Feature backlog → agent picks from here |
+| `content/assets.json` | Sprite manifest |
+| `public/assets/` | SVG sprites the agent can add |
+| `src/` | Game engine — agent wires new features here |
+| `telemetry/sessions/` | Your human play sessions |
+| `telemetry/latest.json` | Aggregated metrics (generated) |
+| `EVOLUTION.md` | Agent memory |
+
+## Daily loop
+
+```bash
+# You play → sessions saved automatically
+npm run telemetry && npm run evolve && npm test
 ```
 
 ## License

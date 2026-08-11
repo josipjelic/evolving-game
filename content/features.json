@@ -1,0 +1,36 @@
+{
+  "backlog": [
+    {
+      "id": "powerups",
+      "priority": 2,
+      "description": "Random power-up drop when collecting crystals (speed boost or shield)"
+    },
+    {
+      "id": "new_enemy_wisp",
+      "priority": 3,
+      "description": "Activate wisp enemy type with distinct patrol + dart behavior"
+    },
+    {
+      "id": "level_2",
+      "priority": 4,
+      "description": "Add level_2.json with new layout and level select after winning"
+    },
+    {
+      "id": "sfx",
+      "priority": 5,
+      "description": "Web Audio sfx for collect, damage, win (no external files required)"
+    },
+    {
+      "id": "particle_trails",
+      "priority": 6,
+      "description": "Simple particle trail on player and crystal pickup burst"
+    }
+  ],
+  "shipped": [
+    {
+      "id": "sprites",
+      "shippedOn": "2026-08-11",
+      "description": "SVG sprites for player, crystals, shadow, wisp, shrine with shape fallback"
+    }
+  ]
+}

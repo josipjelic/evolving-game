@@ -2,6 +2,7 @@ import balance from "../rules/balance.json";
 import level from "../content/levels/level_1.json";
 import enemiesDef from "../content/enemies.json";
 import dialog from "../content/dialog.json";
+import assetsManifest from "../content/assets.json";
 
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
@@ -12,9 +13,11 @@ const timerEl = document.getElementById("timer");
 const waveEl = document.getElementById("wave");
 const messageEl = document.getElementById("message");
 const healBtn = document.getElementById("heal-btn");
+const telemetryEl = document.getElementById("telemetry-status");
 
 const SHRINE = { x: level.playerStart.x, y: level.playerStart.y - 40, radius: 24 };
 const keys = new Set();
+const LS_KEY = "evolving-game-telemetry";
 
 function clamp(v, min, max) {
   return Math.max(min, Math.min(max, v));
@@ -22,6 +25,22 @@ function clamp(v, min, max) {
 
 function dist(a, b) {
   return Math.hypot(a.x - b.x, a.y - b.y);
+}
+
+function newSessionId() {
+  return `human-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function createSession() {
+  return {
+    sessionId: newSessionId(),
+    player: "human",
+    levelId: level.id,
+    startedAt: new Date().toISOString(),
+    events: [],
+    healsUsed: 0,
+    saved: false,
+  };
 }
 
 function createState() {
@@ -41,14 +60,124 @@ function createState() {
     spawnTimer: 0,
     over: false,
     won: false,
+    finished: false,
     lastSpawnTypes: enemiesDef.levelEnemyMap[level.id] ?? ["shadow"],
   };
 }
 
+let session = createSession();
 let state = createState();
+const sprites = {};
+let spritesReady = false;
+
+async function loadSprites() {
+  try {
+    await Promise.all(
+      Object.entries(assetsManifest.sprites).map(([key, path]) =>
+        new Promise((resolve, reject) => {
+          const img = new Image();
+          img.onload = () => {
+            sprites[key] = img;
+            resolve();
+          };
+          img.onerror = reject;
+          img.src = path;
+        })
+      )
+    );
+    spritesReady = true;
+  } catch {
+    spritesReady = false;
+  }
+}
+
+function drawSprite(key, x, y, size, fallbackDraw) {
+  const img = sprites[key];
+  if (spritesReady && img) {
+    ctx.drawImage(img, x - size / 2, y - size / 2, size, size);
+    return;
+  }
+  fallbackDraw();
+}
 
 function say(text) {
   messageEl.textContent = text;
+}
+
+function setTelemetryStatus(text, kind = "idle") {
+  telemetryEl.textContent = `Telemetry: ${text}`;
+  telemetryEl.className = kind === "saved" ? "saved" : kind === "error" ? "error" : "telemetry-idle";
+}
+
+function logEvent(type, data = {}) {
+  const entry = {
+    type,
+    at: new Date().toISOString(),
+    elapsed: state.elapsed,
+    wave: state.wave,
+    hp: state.player.hp,
+    gold: state.gold,
+    coins: state.coinsCollected,
+    playerX: Math.round(state.player.x),
+    playerY: Math.round(state.player.y),
+    ...data,
+  };
+  session.events.push(entry);
+
+  const existing = JSON.parse(localStorage.getItem(LS_KEY) ?? "[]");
+  existing.push(entry);
+  localStorage.setItem(LS_KEY, JSON.stringify(existing.slice(-500)));
+}
+
+async function saveSession(outcome, extra = {}) {
+  if (session.saved) return;
+  session.saved = true;
+
+  const payload = {
+    sessionId: session.sessionId,
+    player: "human",
+    levelId: level.id,
+    startedAt: session.startedAt,
+    endedAt: new Date().toISOString(),
+    outcome,
+    durationSeconds: Math.round(state.elapsed),
+    wave: state.wave,
+    coinsCollected: state.coinsCollected,
+    coinsRequired: level.winCondition.coinsRequired,
+    healsUsed: session.healsUsed,
+    gold: state.gold,
+    finalHp: Math.round(Math.max(0, state.player.hp)),
+    events: session.events,
+    ...extra,
+  };
+
+  if (!import.meta.env.DEV) {
+    setTelemetryStatus("local only (build)", "idle");
+    return;
+  }
+
+  setTelemetryStatus("saving…", "idle");
+  try {
+    const res = await fetch("/api/telemetry", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    setTelemetryStatus(`saved ${data.file}`, "saved");
+  } catch {
+    setTelemetryStatus("save failed — still in localStorage", "error");
+  }
+}
+
+function finishRun(outcome, extra = {}) {
+  if (state.finished) return;
+  state.finished = true;
+  state.over = true;
+  state.won = outcome === "win";
+  logEvent(outcome === "win" ? "win" : "lose", extra);
+  saveSession(outcome, extra);
 }
 
 function spawnEnemy() {
@@ -91,6 +220,7 @@ function tryHeal() {
     0,
     balance.player.maxHp
   );
+  session.healsUsed += 1;
   say(dialog.onHeal);
   logEvent("heal");
 }
@@ -101,9 +231,8 @@ function update(dt) {
   state.elapsed += dt;
   const timeLeft = Math.max(0, level.winCondition.surviveSeconds - state.elapsed);
   if (timeLeft <= 0 && state.coinsCollected < level.winCondition.coinsRequired) {
-    state.over = true;
     say(dialog.onLose);
-    logEvent("lose", { reason: "timeout" });
+    finishRun("lose", { reason: "timeout" });
     return;
   }
 
@@ -153,10 +282,12 @@ function update(dt) {
     if (dist(enemy, state.player) < enemy.radius + state.player.radius) {
       state.player.hp -= enemy.damage * dt;
       if (state.player.hp <= 0) {
-        state.over = true;
-        state.won = false;
         say(dialog.onLose);
-        logEvent("lose", { reason: "death" });
+        finishRun("lose", {
+          reason: "death",
+          deathX: Math.round(state.player.x),
+          deathY: Math.round(state.player.y),
+        });
       } else if (state.player.hp < balance.player.maxHp * 0.3) {
         say(dialog.onLowHp);
       }
@@ -167,10 +298,8 @@ function update(dt) {
     state.coinsCollected >= level.winCondition.coinsRequired &&
     state.elapsed >= level.winCondition.surviveSeconds
   ) {
-    state.over = true;
-    state.won = true;
     say(dialog.onWin);
-    logEvent("win");
+    finishRun("win");
   }
 }
 
@@ -193,33 +322,38 @@ function draw() {
   }
 
   ctx.fillStyle = "#334155";
-  ctx.beginPath();
-  ctx.arc(SHRINE.x, SHRINE.y, SHRINE.radius, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = "#94a3b8";
-  ctx.font = "12px sans-serif";
-  ctx.textAlign = "center";
-  ctx.fillText("Shrine", SHRINE.x, SHRINE.y + 4);
+  drawSprite("shrine", SHRINE.x, SHRINE.y, 48, () => {
+    ctx.beginPath();
+    ctx.arc(SHRINE.x, SHRINE.y, SHRINE.radius, 0, Math.PI * 2);
+    ctx.fill();
+  });
 
   for (const coin of state.coins) {
     if (coin.taken) continue;
-    ctx.fillStyle = "#fbbf24";
-    ctx.beginPath();
-    ctx.arc(coin.x, coin.y, 8, 0, Math.PI * 2);
-    ctx.fill();
+    drawSprite("crystal", coin.x, coin.y, 18, () => {
+      ctx.fillStyle = "#fbbf24";
+      ctx.beginPath();
+      ctx.arc(coin.x, coin.y, 8, 0, Math.PI * 2);
+      ctx.fill();
+    });
   }
 
   for (const enemy of state.enemies) {
-    ctx.fillStyle = enemy.color;
-    ctx.beginPath();
-    ctx.arc(enemy.x, enemy.y, enemy.radius, 0, Math.PI * 2);
-    ctx.fill();
+    const spriteKey = enemy.behavior === "patrol" ? "wisp" : "shadow";
+    drawSprite(spriteKey, enemy.x, enemy.y, enemy.radius * 2.2, () => {
+      ctx.fillStyle = enemy.color;
+      ctx.beginPath();
+      ctx.arc(enemy.x, enemy.y, enemy.radius, 0, Math.PI * 2);
+      ctx.fill();
+    });
   }
 
-  ctx.fillStyle = "#38bdf8";
-  ctx.beginPath();
-  ctx.arc(state.player.x, state.player.y, state.player.radius, 0, Math.PI * 2);
-  ctx.fill();
+  drawSprite("player", state.player.x, state.player.y, 26, () => {
+    ctx.fillStyle = "#38bdf8";
+    ctx.beginPath();
+    ctx.arc(state.player.x, state.player.y, state.player.radius, 0, Math.PI * 2);
+    ctx.fill();
+  });
 
   hpEl.textContent = `HP: ${Math.max(0, Math.round(state.player.hp))}`;
   goldEl.textContent = `Gold: ${state.gold}`;
@@ -229,24 +363,10 @@ function draw() {
   waveEl.textContent = `Wave: ${state.wave}`;
 }
 
-function logEvent(type, data = {}) {
-  const entry = {
-    type,
-    at: new Date().toISOString(),
-    wave: state.wave,
-    hp: state.player.hp,
-    gold: state.gold,
-    coins: state.coinsCollected,
-    ...data,
-  };
-  const key = "evolving-game-telemetry";
-  const existing = JSON.parse(localStorage.getItem(key) ?? "[]");
-  existing.push(entry);
-  localStorage.setItem(key, JSON.stringify(existing.slice(-500)));
-}
-
 function restart() {
+  session = createSession();
   state = createState();
+  setTelemetryStatus("new run", "idle");
   say(level.tutorialLines[0]);
 }
 
@@ -267,7 +387,8 @@ window.addEventListener("keydown", (e) => {
 window.addEventListener("keyup", (e) => keys.delete(e.key));
 healBtn.addEventListener("click", tryHeal);
 
+setTelemetryStatus("ready", "idle");
 say(level.tutorialLines[0]);
-requestAnimationFrame(loop);
+loadSprites().then(() => requestAnimationFrame(loop));
 
 export { balance, level, enemiesDef, dialog, createState, dist, clamp };

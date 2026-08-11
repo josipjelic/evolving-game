@@ -1,0 +1,10 @@
+{
+  "sprites": {
+    "player": "/assets/sprites/player.svg",
+    "crystal": "/assets/sprites/crystal.svg",
+    "shadow": "/assets/sprites/shadow.svg",
+    "wisp": "/assets/sprites/wisp.svg",
+    "shrine": "/assets/sprites/shrine.svg"
+  },
+  "fallback": "shapes"
+}

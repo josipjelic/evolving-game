@@ -1,29 +1,21 @@
-# Evolution state — Day 1
+# Evolution state — Day 3
 
-## Goal this week
-Establish baseline. Target win rate 40–60% for bot playtest.
+## Direction
+**Feature & asset evolution first.** Balance only when human telemetry shows clear pain.
 
-## Metrics baseline
-- Day 0 playtest: 100% win (bot respawn bug — fixed)
-- Day 0 retuned balance: **42% win** (50 runs)
-- Loss pattern: collect all 5 crystals, die while kiting until timer
+## Human telemetry (latest)
+- **2 runs, 50% win rate**
+- Run 1: died at spawn (0 crystals, 19s)
+- Run 2: clean win (98 HP, 0 heals used)
+- healsUsed: 0 → next candidate: powerups or heal discoverability (not balance)
 
-## Open hypotheses
-- ~~Win rate too low~~ → balance tuned to 42%
-- ~~Players die after collecting coins during survive phase~~ → **testing today**
-- Healing unused → lower heal cost or raise coin value
-
-## Constraints
-- ONE logical change per day
-- Allowed paths: `content/**`, `rules/balance.json`, `tests/**`
-- Forbidden: `src/**`, `scripts/**`, dependencies
-- All changes must pass `npm test`
-
-## Yesterday (Day 0)
-Bootstrap. Fixed playtest bot to treat death as loss (was respawning). Tuned enemy damage 5, speed 1.8, spawn 3800ms → 42% win rate.
+## Next backlog item
+**powerups** — speed boost or shield on crystal collect
 
 ## Outcomes log
-| Day | Change | Win rate before | Win rate after | Keep? |
-|-----|--------|-----------------|----------------|-------|
-| 0   | Bootstrap + balance tune | 100% (buggy) / 0% (fixed bot) | 42% | ✓ |
-| 1   | surviveSeconds 45→38 | 42% | 54% | ✓ |
+| Day | Shipped | Human win rate | Notes |
+|-----|---------|----------------|-------|
+| 0   | Bootstrap + balance | — | Bot-only tuning |
+| 1   | surviveSeconds 45→38 | — | Bot 42%→54% |
+| 2   | Telemetry + feature roadmap | — | Pivot to features/assets |
+| 3   | SVG sprites wired | 50% | player, crystal, shadow, wisp, shrine |
