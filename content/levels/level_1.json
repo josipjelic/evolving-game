@@ -18,10 +18,10 @@
   ],
   "winCondition": {
     "coinsRequired": 5,
-    "surviveSeconds": 45
+    "surviveSeconds": 38
   },
   "tutorialLines": [
-    "Collect all crystals before time runs out.",
+    "Collect all crystals, then survive until the timer ends.",
     "Avoid shadow creatures — they drain your energy.",
     "Press H near the shrine to heal (costs gold)."
   ]

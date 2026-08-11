@@ -6,9 +6,9 @@
   },
   "enemy": {
     "hp": 30,
-    "speed": 2,
-    "damage": 8,
-    "spawnIntervalMs": 3000
+    "speed": 1.8,
+    "damage": 5,
+    "spawnIntervalMs": 3800
   },
   "economy": {
     "coinValue": 5,
@@ -16,7 +16,7 @@
     "healAmount": 25
   },
   "waves": {
-    "maxEnemiesOnScreen": 6,
-    "difficultyScalePerWave": 0.08
+    "maxEnemiesOnScreen": 5,
+    "difficultyScalePerWave": 0.1
   }
 }

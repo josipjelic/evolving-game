@@ -115,10 +115,19 @@ function simulate(seed = 42) {
     }
 
     if (player.hp <= 0) {
-      deaths += 1;
-      player.hp = balance.player.maxHp;
-      player.x = level.playerStart.x;
-      player.y = level.playerStart.y;
+      return {
+        date: new Date().toISOString().slice(0, 10),
+        seed,
+        won: false,
+        deaths: 1,
+        coinsCollected: collected,
+        coinsRequired: level.winCondition.coinsRequired,
+        elapsedSeconds: Math.round(elapsed),
+        finalWave: wave,
+        finalHp: 0,
+        gold,
+        loseReason: "death",
+      };
     }
 
     if (collected >= level.winCondition.coinsRequired && elapsed >= level.winCondition.surviveSeconds) {
