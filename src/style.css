@@ -1,0 +1,73 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  background: radial-gradient(circle at top, #1e1b4b, #0f172a 55%);
+  color: #e2e8f0;
+  display: flex;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+#ui {
+  max-width: 680px;
+  width: 100%;
+}
+
+header h1 {
+  margin: 0 0 0.25rem;
+  font-size: 1.75rem;
+}
+
+#subtitle {
+  margin: 0 0 1rem;
+  color: #94a3b8;
+}
+
+#stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.95rem;
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  max-width: 640px;
+  border: 2px solid #334155;
+  border-radius: 8px;
+  background: #0b1220;
+  image-rendering: pixelated;
+}
+
+#message {
+  min-height: 1.5rem;
+  margin-top: 0.75rem;
+  color: #fbbf24;
+}
+
+#controls {
+  margin-top: 0.75rem;
+  color: #94a3b8;
+  font-size: 0.9rem;
+}
+
+#heal-btn {
+  margin-top: 0.5rem;
+  padding: 0.4rem 0.9rem;
+  border: 1px solid #475569;
+  border-radius: 6px;
+  background: #1e293b;
+  color: #e2e8f0;
+  cursor: pointer;
+}
+
+#heal-btn:hover {
+  background: #334155;
+}

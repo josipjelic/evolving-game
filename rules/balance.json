@@ -1,0 +1,22 @@
+{
+  "player": {
+    "maxHp": 100,
+    "speed": 4,
+    "damage": 10
+  },
+  "enemy": {
+    "hp": 30,
+    "speed": 2,
+    "damage": 8,
+    "spawnIntervalMs": 3000
+  },
+  "economy": {
+    "coinValue": 5,
+    "healCost": 15,
+    "healAmount": 25
+  },
+  "waves": {
+    "maxEnemiesOnScreen": 6,
+    "difficultyScalePerWave": 0.08
+  }
+}

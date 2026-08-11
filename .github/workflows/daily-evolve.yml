@@ -1,0 +1,56 @@
+name: Daily Evolution
+
+on:
+  schedule:
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  evolve:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - run: npm ci
+
+      - name: Collect telemetry & playtest
+        run: npm run telemetry && npm run playtest
+
+      - name: Run evolution agent
+        env:
+          CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
+        run: |
+          if [ -z "$CURSOR_API_KEY" ]; then
+            echo "CURSOR_API_KEY secret not set — skipping agent run"
+            exit 0
+          fi
+          npm run evolve
+
+      - name: Run tests
+        run: npm test
+
+      - name: Commit evolution
+        env:
+          CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
+        run: |
+          if [ -z "$CURSOR_API_KEY" ]; then
+            echo "No agent run — nothing to commit"
+            exit 0
+          fi
+          git config user.name "evolving-game-bot"
+          git config user.email "bot@users.noreply.github.com"
+          if git diff --quiet; then
+            echo "No changes from agent"
+          else
+            git add -A
+            git commit -m "evolution: $(date -u +%Y-%m-%d)"
+            git push
+          fi

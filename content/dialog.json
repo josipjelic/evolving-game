@@ -1,0 +1,8 @@
+{
+  "onLowHp": "Your energy flickers… find crystals or visit the shrine.",
+  "onCoinCollect": "Crystal absorbed.",
+  "onWin": "The cavern stabilizes. You survive another cycle.",
+  "onLose": "The shadows claim you. The cavern resets…",
+  "onHeal": "Shrine mends your wounds.",
+  "onNotEnoughGold": "Not enough gold for healing."
+}

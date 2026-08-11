@@ -1,0 +1,28 @@
+{
+  "id": "level_1",
+  "name": "Crystal Cavern",
+  "width": 640,
+  "height": 480,
+  "playerStart": { "x": 320, "y": 400 },
+  "coins": [
+    { "x": 120, "y": 200 },
+    { "x": 320, "y": 150 },
+    { "x": 520, "y": 200 },
+    { "x": 200, "y": 320 },
+    { "x": 440, "y": 320 }
+  ],
+  "enemySpawns": [
+    { "x": 80, "y": 80 },
+    { "x": 560, "y": 80 },
+    { "x": 320, "y": 60 }
+  ],
+  "winCondition": {
+    "coinsRequired": 5,
+    "surviveSeconds": 45
+  },
+  "tutorialLines": [
+    "Collect all crystals before time runs out.",
+    "Avoid shadow creatures — they drain your energy.",
+    "Press H near the shrine to heal (costs gold)."
+  ]
+}

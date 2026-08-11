@@ -1,0 +1,19 @@
+{
+  "enemies": {
+    "shadow": {
+      "name": "Shadow Creature",
+      "color": "#6b21a8",
+      "size": 16,
+      "behavior": "chase"
+    },
+    "wisp": {
+      "name": "Cavern Wisp",
+      "color": "#0891b2",
+      "size": 12,
+      "behavior": "patrol"
+    }
+  },
+  "levelEnemyMap": {
+    "level_1": ["shadow", "shadow", "wisp"]
+  }
+}
