@@ -2,68 +2,26 @@
   "id": "level_1",
   "name": "Crystal Labyrinth",
   "tileSize": 32,
-  "layout": [
-    "##############################",
-    "#............#...............#",
-    "#.#########.#.############.#.#",
-    "#.#.......#.#.#..........#.#.#",
-    "#.#.#####.#.#.#.########.#.#.#",
-    "#...#...#.....#.#......#.....#",
-    "###.#.#.#######.#.####.#.#####",
-    "#...#.#.....#...#.#..#.#.....#",
-    "#.###.#####.#.###.#..#.#####.#",
-    "#.....#...#.#...#...#.....#..#",
-    "#####.#.#.#.###.#####.#####.#.",
-    "#.....#.#.#.....#...#.....#.#.",
-    "#.#####.#.#######.#.#####.#.#.",
-    "#.....#.#.........#.....#.#...",
-    "###.#.#.#############.#.#.###.",
-    "#...#.#.....#.....#...#.....#.",
-    "#.###.#####.#.###.#####.#####.",
-    "#.....#.....#.#...#.....#.....",
-    "#.#####.###.#.#.#.###.#####.#.",
-    "#.......#...#...#...#.......#.",
-    "#######.###.#####.###.#######D",
-    "#.......#.........#.....#....#",
-    "#.####################.#.###.#",
-    "#.......................#...S#",
-    "##############################"
-  ],
-  "playerStart": { "tx": 27, "ty": 23 },
-  "coins": [
-    { "tx": 3, "ty": 1 }, { "tx": 14, "ty": 1 }, { "tx": 26, "ty": 1 },
-    { "tx": 5, "ty": 7 }, { "tx": 11, "ty": 9 },
-    { "tx": 19, "ty": 11 }, { "tx": 7, "ty": 15 },
-    { "tx": 22, "ty": 17 },     { "tx": 3, "ty": 19 },
-    { "tx": 24, "ty": 22 }
-  ],
-  "keys": [{ "id": "iron", "tx": 16, "ty": 5 }],
-  "doors": [{ "keyId": "iron", "tx": 29, "ty": 20 }],
-  "chests": [
-    { "tx": 8, "ty": 3, "gold": 20 },
-    { "tx": 24, "ty": 13, "gold": 15 },
-    { "tx": 15, "ty": 21, "gold": 10 }
-  ],
-  "shrines": [
-    { "tx": 27, "ty": 23, "type": "heal" },
-    { "tx": 2, "ty": 11, "type": "heal" }
-  ],
-  "hazards": [
-    { "tx": 13, "ty": 7, "radius": 36, "dps": 6 },
-    { "tx": 20, "ty": 15, "radius": 32, "dps": 5 }
-  ],
-  "enemySpawns": [
-    { "tx": 14, "ty": 1 }, { "tx": 26, "ty": 1 },
-    { "tx": 5, "ty": 7 }, { "tx": 19, "ty": 11 },
-    { "tx": 24, "ty": 22 }
-  ],
+  "maze": {
+    "cols": 31,
+    "rows": 25,
+    "loopChance": 0.12
+  },
+  "generation": {
+    "coinCount": 10,
+    "chestCount": 3,
+    "hazardCount": 2,
+    "shrineCount": 2,
+    "coinsBehindDoorMin": 3,
+    "maxAttempts": 60
+  },
   "winCondition": {
     "coinsRequired": 8,
     "surviveSeconds": 55
   },
   "tutorialLines": [
-    "Navigate the labyrinth — dark tiles are solid walls.",
-    "Find the iron key to open the vault door (east passage).",
-    "Collect 8 crystals, loot chests, avoid purple pools. H to heal at shrines."
+    "A new maze every run — press R to reroll.",
+    "Find the iron key, open the vault door, collect 8 crystals.",
+    "Loot chests, avoid purple pools, H to heal at shrines."
   ]
 }

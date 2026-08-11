@@ -84,7 +84,7 @@ export function drawMap(ctx, map, openDoors, tileOverrides = {}) {
         ctx.fillRect(x, y, tileSize, tileSize);
         ctx.strokeStyle = "#0f172a";
         ctx.strokeRect(x + 0.5, y + 0.5, tileSize - 1, tileSize - 1);
-      } else if (ch === ".") {
+      } else if (ch === "." || ch === "S") {
         ctx.fillStyle = ((tx + ty) % 2 === 0) ? "#0b1220" : "#0d1526";
         ctx.fillRect(x, y, tileSize, tileSize);
       }

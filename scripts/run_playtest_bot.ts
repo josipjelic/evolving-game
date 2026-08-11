@@ -1,21 +1,11 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { generateLevel, createRng } from "../src/maze-gen.js";
 import { parseLevel, tileCenter, moveCircle } from "../src/map.js";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
-
-interface Level {
-  tileSize: number;
-  layout: string[];
-  playerStart: { tx: number; ty: number };
-  coins: Array<{ tx: number; ty: number }>;
-  keys?: Array<{ id: string; tx: number; ty: number }>;
-  doors?: Array<{ keyId: string; tx: number; ty: number }>;
-  chests?: Array<{ tx: number; ty: number; gold: number }>;
-  enemySpawns?: Array<{ tx: number; ty: number }>;
-  winCondition: { coinsRequired: number; surviveSeconds: number };
-}
+const template = JSON.parse(readFileSync(join(ROOT, "content/levels/level_1.json"), "utf8"));
 
 interface Balance {
   player: { maxHp: number; speed: number };
@@ -35,7 +25,7 @@ function simulate(seed = 42) {
   };
 
   const balance: Balance = JSON.parse(readFileSync(join(ROOT, "rules/balance.json"), "utf8"));
-  const level: Level = JSON.parse(readFileSync(join(ROOT, "content/levels/level_1.json"), "utf8"));
+  const level = generateLevel(template, seed);
   const map = parseLevel(level);
   const TS = map.tileSize;
   const tw = (tx: number, ty: number) => tileCenter(tx, ty, TS);

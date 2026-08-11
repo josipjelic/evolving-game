@@ -1,18 +1,17 @@
 import balance from "../rules/balance.json";
-import levelDef from "../content/levels/level_1.json";
+import levelTemplate from "../content/levels/level_1.json";
 import enemiesDef from "../content/enemies.json";
 import dialog from "../content/dialog.json";
 import assetsManifest from "../content/assets.json";
 import { parseLevel, tileCenter, moveCircle, circleHitsWall, drawMap } from "./map.js";
+import { generateLevel } from "./maze-gen.js";
 
-const map = parseLevel(levelDef);
-const level = { ...levelDef, width: map.width, height: map.height };
-const TS = map.tileSize;
+let map;
+let level;
+let TS;
 
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
-canvas.width = map.width;
-canvas.height = map.height;
 
 const hpEl = document.getElementById("hp");
 const goldEl = document.getElementById("gold");
@@ -23,7 +22,16 @@ const waveEl = document.getElementById("wave");
 const messageEl = document.getElementById("message");
 const healBtn = document.getElementById("heal-btn");
 const telemetryEl = document.getElementById("telemetry-status");
-document.getElementById("subtitle").textContent = level.name;
+document.getElementById("subtitle").textContent = levelTemplate.name;
+
+function initLevel(seed) {
+  level = generateLevel(levelTemplate, seed ?? Date.now());
+  map = parseLevel(level);
+  TS = map.tileSize;
+  canvas.width = map.width;
+  canvas.height = map.height;
+  document.querySelector("header h1").textContent = level.name;
+}
 
 const keySet = new Set();
 const LS_KEY = "evolving-game-telemetry";
@@ -81,8 +89,8 @@ function createState() {
   };
 }
 
-let session = createSession();
-let state = createState();
+let session;
+let state;
 const sprites = {};
 let spritesReady = false;
 
@@ -456,8 +464,9 @@ function draw() {
 
 function restart() {
   session = createSession();
+  initLevel(Date.now());
   state = createState();
-  setTelemetryStatus("new run", "idle");
+  setTelemetryStatus("new maze", "idle");
   say(level.tutorialLines[0]);
 }
 
@@ -478,6 +487,9 @@ window.addEventListener("keydown", (e) => {
 window.addEventListener("keyup", (e) => keySet.delete(e.key));
 healBtn.addEventListener("click", tryHeal);
 
+initLevel();
+session = createSession();
+state = createState();
 setTelemetryStatus("ready", "idle");
 say(level.tutorialLines[0]);
 loadSprites().then(() => requestAnimationFrame(loop));

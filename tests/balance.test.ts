@@ -5,6 +5,7 @@ import { join } from "node:path";
 const ROOT = join(import.meta.dirname, "..");
 const balance = JSON.parse(readFileSync(join(ROOT, "rules/balance.json"), "utf8"));
 const level = JSON.parse(readFileSync(join(ROOT, "content/levels/level_1.json"), "utf8"));
+const template = level;
 
 describe("balance.json", () => {
   it("keeps player stronger than base enemy in a 1v1", () => {
@@ -21,7 +22,7 @@ describe("balance.json", () => {
     expect(balance.enemy.spawnIntervalMs).toBeGreaterThanOrEqual(1500);
   });
 
-  it("win condition is achievable within level coin count", () => {
-    expect(level.coins.length).toBeGreaterThanOrEqual(level.winCondition.coinsRequired);
+  it("win condition is achievable with generated coin count", () => {
+    expect(level.generation.coinCount).toBeGreaterThanOrEqual(level.winCondition.coinsRequired);
   });
 });
