@@ -35,7 +35,12 @@
     {
       "id": "maze_map",
       "shippedOn": "2026-08-11",
-      "description": "Tile labyrinth with walls, keys, doors, chests, hazards, dual shrines"
+      "description": "Tile labyrinth with walls, keys, doors, chests, hazards"
+    },
+    {
+      "id": "procedural_maze",
+      "shippedOn": "2026-08-11",
+      "description": "Random solvable maze each run via recursive backtracker + vault split validation"
     }
   ]
 }

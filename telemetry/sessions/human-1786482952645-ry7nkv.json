@@ -1,0 +1,190 @@
+{
+  "sessionId": "human-1786482952645-ry7nkv",
+  "player": "human",
+  "levelId": "level_1",
+  "startedAt": "2026-08-11T21:15:52.645Z",
+  "endedAt": "2026-08-11T21:16:47.657Z",
+  "outcome": "lose",
+  "durationSeconds": 55,
+  "wave": 2,
+  "coinsCollected": 7,
+  "coinsRequired": 8,
+  "healsUsed": 0,
+  "chestsOpened": 3,
+  "gold": 80,
+  "finalHp": 84,
+  "events": [
+    {
+      "type": "coin_collect",
+      "at": "2026-08-11T21:16:01.269Z",
+      "elapsed": 8.625600000000022,
+      "wave": 1,
+      "hp": 100,
+      "gold": 5,
+      "coins": 1,
+      "keys": [],
+      "playerX": 56,
+      "playerY": 314,
+      "total": 1
+    },
+    {
+      "type": "coin_collect",
+      "at": "2026-08-11T21:16:03.187Z",
+      "elapsed": 10.543800000000001,
+      "wave": 1,
+      "hp": 100,
+      "gold": 10,
+      "coins": 2,
+      "keys": [],
+      "playerX": 103,
+      "playerY": 685,
+      "total": 2
+    },
+    {
+      "type": "chest_open",
+      "at": "2026-08-11T21:16:10.826Z",
+      "elapsed": 18.18329999999991,
+      "wave": 1,
+      "hp": 94.27890000000009,
+      "gold": 10,
+      "coins": 2,
+      "keys": [],
+      "playerX": 696,
+      "playerY": 690
+    },
+    {
+      "type": "key_pickup",
+      "at": "2026-08-11T21:16:15.380Z",
+      "elapsed": 22.737299999999813,
+      "wave": 2,
+      "hp": 94.27890000000009,
+      "gold": 20,
+      "coins": 2,
+      "keys": [
+        "iron"
+      ],
+      "playerX": 489,
+      "playerY": 559,
+      "keyId": "iron"
+    },
+    {
+      "type": "coin_collect",
+      "at": "2026-08-11T21:16:22.770Z",
+      "elapsed": 30.126699999999648,
+      "wave": 2,
+      "hp": 87.35140000000004,
+      "gold": 25,
+      "coins": 3,
+      "keys": [
+        "iron"
+      ],
+      "playerX": 569,
+      "playerY": 430,
+      "total": 3
+    },
+    {
+      "type": "coin_collect",
+      "at": "2026-08-11T21:16:23.954Z",
+      "elapsed": 31.311099999999627,
+      "wave": 2,
+      "hp": 87.35140000000004,
+      "gold": 30,
+      "coins": 4,
+      "keys": [
+        "iron"
+      ],
+      "playerX": 691,
+      "playerY": 325,
+      "total": 4
+    },
+    {
+      "type": "chest_open",
+      "at": "2026-08-11T21:16:27.157Z",
+      "elapsed": 34.51379999999977,
+      "wave": 2,
+      "hp": 87.35140000000004,
+      "gold": 20,
+      "coins": 4,
+      "keys": [
+        "iron"
+      ],
+      "playerX": 883,
+      "playerY": 361
+    },
+    {
+      "type": "coin_collect",
+      "at": "2026-08-11T21:16:30.993Z",
+      "elapsed": 38.350300000000054,
+      "wave": 2,
+      "hp": 87.35140000000004,
+      "gold": 55,
+      "coins": 5,
+      "keys": [
+        "iron"
+      ],
+      "playerX": 613,
+      "playerY": 45,
+      "total": 5
+    },
+    {
+      "type": "chest_open",
+      "at": "2026-08-11T21:16:32.211Z",
+      "elapsed": 39.567900000000115,
+      "wave": 2,
+      "hp": 87.35140000000004,
+      "gold": 15,
+      "coins": 5,
+      "keys": [
+        "iron"
+      ],
+      "playerX": 365,
+      "playerY": 86
+    },
+    {
+      "type": "coin_collect",
+      "at": "2026-08-11T21:16:38.750Z",
+      "elapsed": 46.106700000000494,
+      "wave": 2,
+      "hp": 84.35090000000005,
+      "gold": 75,
+      "coins": 6,
+      "keys": [
+        "iron"
+      ],
+      "playerX": 245,
+      "playerY": 635,
+      "total": 6
+    },
+    {
+      "type": "coin_collect",
+      "at": "2026-08-11T21:16:42.069Z",
+      "elapsed": 49.42620000000065,
+      "wave": 2,
+      "hp": 84.35090000000005,
+      "gold": 80,
+      "coins": 7,
+      "keys": [
+        "iron"
+      ],
+      "playerX": 359,
+      "playerY": 688,
+      "total": 7
+    },
+    {
+      "type": "lose",
+      "at": "2026-08-11T21:16:47.657Z",
+      "elapsed": 55.013200000000985,
+      "wave": 2,
+      "hp": 84.35090000000005,
+      "gold": 80,
+      "coins": 7,
+      "keys": [
+        "iron"
+      ],
+      "playerX": 329,
+      "playerY": 689,
+      "reason": "timeout"
+    }
+  ],
+  "reason": "timeout"
+}

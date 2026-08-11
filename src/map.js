@@ -1,5 +1,7 @@
 /** Tile map: collision, rendering, world ↔ tile coords */
 
+const WALL_INSET = 3;
+
 export function parseLevel(level) {
   const tileSize = level.tileSize ?? 32;
   const layout = level.layout;
@@ -36,11 +38,29 @@ export function tileCenter(tx, ty, tileSize) {
   return { x: tx * tileSize + tileSize / 2, y: ty * tileSize + tileSize / 2 };
 }
 
+/** Random position inside a floor tile, inset from edges */
+export function randomPointInTile(tx, ty, tileSize, radius, walls, openDoors = new Set()) {
+  const center = tileCenter(tx, ty, tileSize);
+  const margin = radius + 2;
+  const half = Math.max(0, tileSize / 2 - margin);
+  for (let i = 0; i < 8; i++) {
+    const x = center.x + (Math.random() * 2 - 1) * half;
+    const y = center.y + (Math.random() * 2 - 1) * half;
+    if (!circleHitsWall(x, y, radius, walls, openDoors)) return { x, y };
+  }
+  return center;
+}
+
 export function circleHitsWall(x, y, radius, walls, openDoors = new Set()) {
   for (const wall of walls) {
     if (wall.door && openDoors.has(`${wall.tx},${wall.ty}`)) continue;
-    const nx = Math.max(wall.x, Math.min(x, wall.x + wall.w));
-    const ny = Math.max(wall.y, Math.min(y, wall.y + wall.h));
+    const inset = WALL_INSET;
+    const wx = wall.x + inset;
+    const wy = wall.y + inset;
+    const ww = wall.w - inset * 2;
+    const wh = wall.h - inset * 2;
+    const nx = Math.max(wx, Math.min(x, wx + ww));
+    const ny = Math.max(wy, Math.min(y, wy + wh));
     if ((x - nx) ** 2 + (y - ny) ** 2 < radius ** 2) return true;
   }
   return false;

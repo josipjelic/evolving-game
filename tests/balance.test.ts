@@ -5,7 +5,6 @@ import { join } from "node:path";
 const ROOT = join(import.meta.dirname, "..");
 const balance = JSON.parse(readFileSync(join(ROOT, "rules/balance.json"), "utf8"));
 const level = JSON.parse(readFileSync(join(ROOT, "content/levels/level_1.json"), "utf8"));
-const template = level;
 
 describe("balance.json", () => {
   it("keeps player stronger than base enemy in a 1v1", () => {

@@ -3,7 +3,7 @@ import levelTemplate from "../content/levels/level_1.json";
 import enemiesDef from "../content/enemies.json";
 import dialog from "../content/dialog.json";
 import assetsManifest from "../content/assets.json";
-import { parseLevel, tileCenter, moveCircle, circleHitsWall, drawMap } from "./map.js";
+import { parseLevel, tileCenter, moveCircle, circleHitsWall, drawMap, isWalkableTile, randomPointInTile } from "./map.js";
 import { generateLevel } from "./maze-gen.js";
 
 let map;
@@ -48,6 +48,47 @@ function tw(tx, ty) {
   return tileCenter(tx, ty, TS);
 }
 
+/** Scale per-frame speeds to be dt-independent (baseline 60fps) */
+function scaleSpeed(speed, dt) {
+  return speed * dt * 60;
+}
+
+/** Longest straight walkable corridor through a tile — patrol endpoints */
+function patrolEndpoints(tx, ty, openDoors = new Set()) {
+  const dirs = [
+    [1, 0],
+    [-1, 0],
+    [0, 1],
+    [0, -1],
+  ];
+  let best = [];
+  for (const [dx, dy] of dirs) {
+    const line = [];
+    for (let i = -8; i <= 8; i++) {
+      const nx = tx + dx * i;
+      const ny = ty + dy * i;
+      if (isWalkableTile(level.layout, nx, ny, openDoors)) {
+        line.push(tw(nx, ny));
+      }
+    }
+    if (line.length > best.length) best = line;
+  }
+  if (best.length < 2) return null;
+  return { a: best[0], b: best[best.length - 1] };
+}
+
+function initPatrol(enemy, spawnTx, spawnTy, openDoors) {
+  const route = patrolEndpoints(spawnTx, spawnTy, openDoors);
+  if (route) {
+    enemy.patrolA = route.a;
+    enemy.patrolB = route.b;
+    enemy.patrolTarget = route.b;
+  } else {
+    const angle = Math.random() * Math.PI * 2;
+    enemy.patrolDir = { x: Math.cos(angle), y: Math.sin(angle) };
+  }
+}
+
 function newSessionId() {
   return `human-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
@@ -66,7 +107,14 @@ function createSession() {
 }
 
 function createState() {
-  const start = tw(level.playerStart.tx, level.playerStart.ty);
+  const start = randomPointInTile(
+    level.playerStart.tx,
+    level.playerStart.ty,
+    TS,
+    12,
+    map.walls,
+    new Set()
+  );
   return {
     player: { ...start, hp: balance.player.maxHp, radius: 12 },
     gold: 0,
@@ -217,23 +265,34 @@ function spawnEnemy() {
   const spawns = level.enemySpawns ?? [];
   if (!spawns.length) return;
   const s = spawns[Math.floor(Math.random() * spawns.length)];
-  const pos = tw(s.tx, s.ty);
   const typeKey = state.lastSpawnTypes[state.enemies.length % state.lastSpawnTypes.length];
   const type = enemiesDef.enemies[typeKey] ?? enemiesDef.enemies.shadow;
   const scale = 1 + (state.wave - 1) * balance.waves.difficultyScalePerWave;
+  const radius = type.size;
 
-  state.enemies.push({
+  const pos = randomPointInTile(s.tx, s.ty, TS, radius, map.walls, state.openDoors);
+
+  const enemy = {
     x: pos.x,
     y: pos.y,
+    spawnTx: s.tx,
+    spawnTy: s.ty,
     hp: Math.round(balance.enemy.hp * scale),
     speed: balance.enemy.speed * (1 + (state.wave - 1) * 0.05),
     damage: Math.round(balance.enemy.damage * scale),
-    radius: type.size,
+    radius,
     color: type.color,
     behavior: type.behavior,
-    vx: (Math.random() - 0.5) * 2,
-    vy: (Math.random() - 0.5) * 2,
-  });
+  };
+
+  if (type.behavior === "patrol") {
+    initPatrol(enemy, s.tx, s.ty, state.openDoors);
+  } else {
+    initPatrol(enemy, s.tx, s.ty, state.openDoors);
+    enemy.aggroRange = 140;
+  }
+
+  state.enemies.push(enemy);
 
   if (state.enemies.length >= balance.waves.maxEnemiesOnScreen) state.wave += 1;
 }
@@ -300,22 +359,50 @@ function updateEnemies(dt) {
   for (const enemy of state.enemies) {
     let dx = 0;
     let dy = 0;
+    const step = scaleSpeed(enemy.speed, dt);
+
     if (enemy.behavior === "chase") {
-      const d = dist(enemy, state.player) || 1;
-      dx = (state.player.x - enemy.x) / d * enemy.speed;
-      dy = (state.player.y - enemy.y) / d * enemy.speed;
-    } else {
-      dx = enemy.vx;
-      dy = enemy.vy;
+      const playerDist = dist(enemy, state.player);
+      if (playerDist > (enemy.aggroRange ?? 140) && enemy.patrolTarget) {
+        const d = dist(enemy, enemy.patrolTarget) || 1;
+        if (d < 4) {
+          enemy.patrolTarget =
+            dist(enemy, enemy.patrolA) <= dist(enemy, enemy.patrolB) ? enemy.patrolB : enemy.patrolA;
+        }
+        dx = ((enemy.patrolTarget.x - enemy.x) / d) * step * 0.7;
+        dy = ((enemy.patrolTarget.y - enemy.y) / d) * step * 0.7;
+      } else {
+        const d = playerDist || 1;
+        dx = ((state.player.x - enemy.x) / d) * step;
+        dy = ((state.player.y - enemy.y) / d) * step;
+      }
+    } else if (enemy.patrolTarget) {
+      const d = dist(enemy, enemy.patrolTarget) || 1;
+      if (d < 4) {
+        enemy.patrolTarget =
+          dist(enemy, enemy.patrolA) <= dist(enemy, enemy.patrolB) ? enemy.patrolB : enemy.patrolA;
+      }
+      dx = ((enemy.patrolTarget.x - enemy.x) / d) * step * 0.85;
+      dy = ((enemy.patrolTarget.y - enemy.y) / d) * step * 0.85;
+    } else if (enemy.patrolDir) {
+      dx = enemy.patrolDir.x * step * 0.85;
+      dy = enemy.patrolDir.y * step * 0.85;
     }
 
+    const prevX = enemy.x;
+    const prevY = enemy.y;
     const moved = moveCircle(enemy, dx, dy, map.walls, map, state.openDoors);
     enemy.x = moved.x;
     enemy.y = moved.y;
 
-    if (enemy.behavior === "patrol") {
-      if (circleHitsWall(enemy.x + enemy.vx, enemy.y, enemy.radius, map.walls, state.openDoors)) enemy.vx *= -1;
-      if (circleHitsWall(enemy.x, enemy.y + enemy.vy, enemy.radius, map.walls, state.openDoors)) enemy.vy *= -1;
+    if (enemy.behavior === "patrol" && Math.hypot(moved.x - prevX, moved.y - prevY) < 0.05) {
+      if (enemy.patrolTarget) {
+        enemy.patrolTarget =
+          dist(enemy, enemy.patrolA) <= dist(enemy, enemy.patrolB) ? enemy.patrolB : enemy.patrolA;
+      } else if (enemy.patrolDir) {
+        enemy.patrolDir.x *= -1;
+        enemy.patrolDir.y *= -1;
+      }
     }
 
     if (dist(enemy, state.player) < enemy.radius + state.player.radius) {
@@ -350,10 +437,11 @@ function update(dt) {
 
   if (dx || dy) {
     const len = Math.hypot(dx, dy) || 1;
+    const step = scaleSpeed(balance.player.speed, dt);
     const moved = moveCircle(
       state.player,
-      (dx / len) * balance.player.speed,
-      (dy / len) * balance.player.speed,
+      (dx / len) * step,
+      (dy / len) * step,
       map.walls,
       map,
       state.openDoors
