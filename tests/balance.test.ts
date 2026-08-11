@@ -12,9 +12,9 @@ describe("balance.json", () => {
     expect(balance.player.damage).toBeGreaterThan(0);
   });
 
-  it("healing is affordable after collecting all coins", () => {
-    const goldFromCoins = level.coins.length * balance.economy.coinValue;
-    expect(goldFromCoins).toBeGreaterThanOrEqual(balance.economy.healCost);
+  it("healing is affordable after collecting some crystals", () => {
+    const goldFromThree = 3 * balance.economy.coinValue;
+    expect(goldFromThree).toBeGreaterThanOrEqual(balance.economy.healCost);
   });
 
   it("spawn interval is not faster than human reaction time", () => {

@@ -3,27 +3,28 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Evolving Game — Crystal Cavern</title>
+    <title>Evolving Game — Crystal Labyrinth</title>
     <link rel="stylesheet" href="/style.css" />
   </head>
   <body>
     <div id="ui">
       <header>
-        <h1>Crystal Cavern</h1>
+        <h1>Crystal Labyrinth</h1>
         <p id="subtitle">A self-evolving survival game</p>
       </header>
       <div id="stats">
         <span id="hp">HP: 100</span>
         <span id="gold">Gold: 0</span>
-        <span id="coins">Crystals: 0/5</span>
+        <span id="coins">Crystals: 0/8</span>
+        <span id="keys">Keys: none</span>
         <span id="timer">Time: —</span>
         <span id="wave">Wave: 1</span>
         <span id="telemetry-status" class="telemetry-idle">Telemetry: idle</span>
       </div>
-      <canvas id="game" width="640" height="480"></canvas>
+      <canvas id="game"></canvas>
       <div id="message"></div>
       <div id="controls">
-        <p>WASD / arrows to move · H to heal at shrine · R to restart</p>
+        <p>WASD move · H heal at shrine · Loot chests & keys · R restart</p>
         <button id="heal-btn" type="button">Heal (15g)</button>
       </div>
     </div>

@@ -1,13 +1,9 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
-import { createHash } from "node:crypto";
+import { parseLevel, isWalkableTile } from "../src/map.js";
 
 const ROOT = join(import.meta.dirname, "..");
-
-function hashFile(path: string) {
-  return createHash("sha256").update(readFileSync(path)).digest("hex").slice(0, 12);
-}
 
 describe("level snapshots", () => {
   const levelsDir = join(ROOT, "content/levels");
@@ -18,22 +14,25 @@ describe("level snapshots", () => {
   });
 
   for (const file of levels) {
-    it(`${file} has valid structure`, () => {
+    it(`${file} maze layout is valid`, () => {
       const level = JSON.parse(readFileSync(join(levelsDir, file), "utf8"));
-      expect(level.id).toBeTruthy();
-      expect(level.width).toBeGreaterThan(0);
-      expect(level.height).toBeGreaterThan(0);
-      expect(level.playerStart).toMatchObject({ x: expect.any(Number), y: expect.any(Number) });
-      expect(level.coins.length).toBeGreaterThan(0);
-      expect(level.winCondition.coinsRequired).toBeLessThanOrEqual(level.coins.length);
+      expect(level.layout.length).toBeGreaterThan(0);
+      const cols = level.layout[0].length;
+      for (const row of level.layout) {
+        expect(row.length).toBe(cols);
+      }
+
+      const map = parseLevel(level);
+      expect(map.width).toBe(cols * level.tileSize);
+      expect(isWalkableTile(level.layout, level.playerStart.tx, level.playerStart.ty)).toBe(true);
+
+      for (const coin of level.coins) {
+        expect(isWalkableTile(level.layout, coin.tx, coin.ty)).toBe(true);
+      }
+
+      expect(level.coins.length).toBeGreaterThanOrEqual(level.winCondition.coinsRequired);
     });
   }
-
-  it("level_1 snapshot hash (update intentionally when redesigning level)", () => {
-    // ponytail: hash catches accidental level edits; bump when evolution redesigns level
-    const hash = hashFile(join(levelsDir, "level_1.json"));
-    expect(hash).toMatch(/^[a-f0-9]{12}$/);
-  });
 });
 
 describe("content integrity", () => {
@@ -44,5 +43,21 @@ describe("content integrity", () => {
     for (const t of types) {
       expect(enemies.enemies[t]).toBeDefined();
     }
+  });
+
+  it("doors reference defined keys", () => {
+    const level = JSON.parse(readFileSync(join(ROOT, "content/levels/level_1.json"), "utf8"));
+    const keyIds = new Set((level.keys ?? []).map((k: { id: string }) => k.id));
+    for (const door of level.doors ?? []) {
+      expect(keyIds.has(door.keyId)).toBe(true);
+    }
+  });
+});
+
+describe("map collision", () => {
+  it("detects wall tiles", () => {
+    const level = JSON.parse(readFileSync(join(ROOT, "content/levels/level_1.json"), "utf8"));
+    expect(isWalkableTile(level.layout, 0, 0)).toBe(false);
+    expect(isWalkableTile(level.layout, 1, 1)).toBe(true);
   });
 });

@@ -14,7 +14,7 @@ body {
 }
 
 #ui {
-  max-width: 680px;
+  max-width: 980px;
   width: 100%;
 }
 
@@ -39,7 +39,7 @@ header h1 {
 canvas {
   display: block;
   width: 100%;
-  max-width: 640px;
+  max-width: 960px;
   border: 2px solid #334155;
   border-radius: 8px;
   background: #0b1220;

@@ -1,19 +1,19 @@
 import { readFileSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { join, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
+import { parseLevel, tileCenter, moveCircle } from "../src/map.js";
 
-const ROOT = join(import.meta.dirname, "..");
-
-interface Vec2 {
-  x: number;
-  y: number;
-}
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 
 interface Level {
-  width: number;
-  height: number;
-  playerStart: Vec2;
-  coins: Vec2[];
-  enemySpawns: Vec2[];
+  tileSize: number;
+  layout: string[];
+  playerStart: { tx: number; ty: number };
+  coins: Array<{ tx: number; ty: number }>;
+  keys?: Array<{ id: string; tx: number; ty: number }>;
+  doors?: Array<{ keyId: string; tx: number; ty: number }>;
+  chests?: Array<{ tx: number; ty: number; gold: number }>;
+  enemySpawns?: Array<{ tx: number; ty: number }>;
   winCondition: { coinsRequired: number; surviveSeconds: number };
 }
 
@@ -23,11 +23,10 @@ interface Balance {
   waves: { maxEnemiesOnScreen: number; difficultyScalePerWave: number };
 }
 
-function dist(a: Vec2, b: Vec2) {
+function dist(a: { x: number; y: number }, b: { x: number; y: number }) {
   return Math.hypot(a.x - b.x, a.y - b.y);
 }
 
-/** Headless greedy bot: collect nearest coin, flee if enemy close */
 function simulate(seed = 42) {
   let rng = seed;
   const rand = () => {
@@ -37,19 +36,25 @@ function simulate(seed = 42) {
 
   const balance: Balance = JSON.parse(readFileSync(join(ROOT, "rules/balance.json"), "utf8"));
   const level: Level = JSON.parse(readFileSync(join(ROOT, "content/levels/level_1.json"), "utf8"));
+  const map = parseLevel(level);
+  const TS = map.tileSize;
+  const tw = (tx: number, ty: number) => tileCenter(tx, ty, TS);
 
-  const player = { ...level.playerStart, hp: balance.player.maxHp, radius: 12 };
-  const coins = level.coins.map((c) => ({ ...c, taken: false }));
+  const start = tw(level.playerStart.tx, level.playerStart.ty);
+  const player = { ...start, hp: balance.player.maxHp, radius: 12 };
+  const coins = level.coins.map((c) => ({ ...tw(c.tx, c.ty), taken: false }));
+  const keys = (level.keys ?? []).map((k) => ({ ...k, ...tw(k.tx, k.ty), taken: false }));
+  const keysHeld = new Set<string>();
+  const openDoors = new Set<string>();
   let gold = 0;
   let collected = 0;
   let elapsed = 0;
   let wave = 1;
-  const enemies: Array<Vec2 & { speed: number; damage: number; radius: number }> = [];
+  const enemies: Array<{ x: number; y: number; speed: number; damage: number; radius: number }> = [];
   let spawnTimer = 0;
 
   const dt = 1 / 60;
-  const maxSteps = level.winCondition.surviveSeconds * 60 + 600;
-  let deaths = 0;
+  const maxSteps = level.winCondition.surviveSeconds * 60 + 900;
 
   for (let step = 0; step < maxSteps; step++) {
     elapsed += dt;
@@ -57,15 +62,34 @@ function simulate(seed = 42) {
 
     if (spawnTimer >= balance.enemy.spawnIntervalMs && enemies.length < balance.waves.maxEnemiesOnScreen) {
       spawnTimer = 0;
-      const spawn = level.enemySpawns[Math.floor(rand() * level.enemySpawns.length)];
-      const scale = 1 + (wave - 1) * balance.waves.difficultyScalePerWave;
-      enemies.push({
-        ...spawn,
-        speed: balance.enemy.speed * (1 + (wave - 1) * 0.05),
-        damage: Math.round(balance.enemy.damage * scale),
-        radius: 16,
-      });
-      if (enemies.length >= balance.waves.maxEnemiesOnScreen) wave += 1;
+      const spawns = level.enemySpawns ?? [];
+      const s = spawns[Math.floor(rand() * spawns.length)];
+      if (s) {
+        const pos = tw(s.tx, s.ty);
+        const scale = 1 + (wave - 1) * balance.waves.difficultyScalePerWave;
+        enemies.push({
+          ...pos,
+          speed: balance.enemy.speed * (1 + (wave - 1) * 0.05),
+          damage: Math.round(balance.enemy.damage * scale),
+          radius: 16,
+        });
+        if (enemies.length >= balance.waves.maxEnemiesOnScreen) wave += 1;
+      }
+    }
+
+    for (const key of keys) {
+      if (!key.taken && dist(player, key) < player.radius + 14) {
+        key.taken = true;
+        keysHeld.add(key.id);
+      }
+    }
+
+    for (const door of level.doors ?? []) {
+      const dk = `${door.tx},${door.ty}`;
+      if (!openDoors.has(dk) && keysHeld.has(door.keyId)) {
+        const dc = tw(door.tx, door.ty);
+        if (dist(player, dc) < TS * 2) openDoors.add(dk);
+      }
     }
 
     const nearestEnemy = enemies.reduce<{ d: number; e: (typeof enemies)[0] | null }>(
@@ -76,7 +100,7 @@ function simulate(seed = 42) {
       { d: Infinity, e: null }
     );
 
-    let target: Vec2 | null = null;
+    let target: { x: number; y: number } | null = null;
     if (nearestEnemy.e && nearestEnemy.d < 80) {
       const e = nearestEnemy.e;
       const d = nearestEnemy.d || 1;
@@ -90,15 +114,20 @@ function simulate(seed = 42) {
 
     if (target) {
       const d = dist(player, target) || 1;
-      player.x += ((target.x - player.x) / d) * balance.player.speed;
-      player.y += ((target.y - player.y) / d) * balance.player.speed;
+      const moved = moveCircle(
+        player,
+        ((target.x - player.x) / d) * balance.player.speed,
+        ((target.y - player.y) / d) * balance.player.speed,
+        map.walls,
+        map,
+        openDoors
+      );
+      player.x = moved.x;
+      player.y = moved.y;
     }
 
-    player.x = Math.max(16, Math.min(level.width - 16, player.x));
-    player.y = Math.max(16, Math.min(level.height - 16, player.y));
-
     for (const coin of coins) {
-      if (!coin.taken && dist(player, coin) < player.radius + 10) {
+      if (!coin.taken && dist(player, coin) < player.radius + 12) {
         coin.taken = true;
         collected += 1;
         gold += 5;
@@ -107,8 +136,16 @@ function simulate(seed = 42) {
 
     for (const enemy of enemies) {
       const d = dist(enemy, player) || 1;
-      enemy.x += ((player.x - enemy.x) / d) * enemy.speed;
-      enemy.y += ((player.y - enemy.y) / d) * enemy.speed;
+      const moved = moveCircle(
+        enemy,
+        ((player.x - enemy.x) / d) * enemy.speed,
+        ((player.y - enemy.y) / d) * enemy.speed,
+        map.walls,
+        map,
+        openDoors
+      );
+      enemy.x = moved.x;
+      enemy.y = moved.y;
       if (dist(enemy, player) < enemy.radius + player.radius) {
         player.hp -= enemy.damage * dt;
       }
@@ -144,7 +181,7 @@ function simulate(seed = 42) {
     date: new Date().toISOString().slice(0, 10),
     seed,
     won,
-    deaths,
+    deaths: 0,
     coinsCollected: collected,
     coinsRequired: level.winCondition.coinsRequired,
     elapsedSeconds: Math.round(elapsed),
@@ -161,7 +198,7 @@ export function runPlaytest(runs = 20) {
     date: new Date().toISOString().slice(0, 10),
     runs,
     win_rate: wins / runs,
-    avg_deaths: results.reduce((s, r) => s + r.deaths, 0) / runs,
+    avg_deaths: results.filter((r) => !r.won).length / runs,
     avg_coins: results.reduce((s, r) => s + r.coinsCollected, 0) / runs,
     avg_wave: results.reduce((s, r) => s + r.finalWave, 0) / runs,
     results,

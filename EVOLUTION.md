@@ -15,7 +15,5 @@
 ## Outcomes log
 | Day | Shipped | Human win rate | Notes |
 |-----|---------|----------------|-------|
-| 0   | Bootstrap + balance | — | Bot-only tuning |
-| 1   | surviveSeconds 45→38 | — | Bot 42%→54% |
-| 2   | Telemetry + feature roadmap | — | Pivot to features/assets |
-| 3   | SVG sprites wired | 50% | player, crystal, shadow, wisp, shrine |
+| 3   | SVG sprites wired | 50% | — |
+| 4   | Crystal Labyrinth maze | — | walls, keys, doors, chests, hazards, 10 crystals |
